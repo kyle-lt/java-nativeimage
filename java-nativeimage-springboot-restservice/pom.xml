@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.4.5</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ktully.nativeimage.springboot.restservice</groupId>
+	<artifactId>restservice</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>restservice</name>
+	<description>Demo Java Native Image App for Spring Boot</description>
+	<properties>
+		<java.version>1.8</java.version>
+	</properties>
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.experimental</groupId>
+			<artifactId>spring-native</artifactId>
+			<version>0.9.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.graalvm.sdk</groupId>
+			<artifactId>graal-sdk</artifactId>
+			<version>21.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- OpenTelemetry -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-api</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-sdk</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<!-- Logging Exporter -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-logging</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<!-- Jaeger Exporter -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-jaeger</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<!-- OTLP Exporter -->
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-protobuf</artifactId>
+			<version>1.30.0</version>
+		</dependency>
+		<!-- <dependency> <groupId>io.grpc</groupId> <artifactId>grpc-netty-shaded</artifactId> 
+			<version>1.30.0</version> </dependency> -->
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-okhttp</artifactId>
+			<version>1.37.0</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<!-- The Spring AOT plugin performs ahead-of-time transformations required 
+				to improve native image compatibility and footprint. -->
+			<plugin>
+				<groupId>org.springframework.experimental</groupId>
+				<artifactId>spring-aot-maven-plugin</artifactId>
+				<version>0.9.2</version>
+				<executions>
+					<execution>
+						<id>test-generate</id>
+						<goals>
+							<goal>test-generate</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>generate</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+
+				<!-- This is used for the Docker Build variant -->
+				<!-- <configuration> <image> <builder>paketobuildpacks/builder:tiny</builder> 
+					<env> <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE> </env> </image> </configuration> -->
+				<!-- This is used for the Native Build variant -->
+				<configuration>
+					<classifier>exec</classifier>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>native-image</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.graalvm.nativeimage</groupId>
+						<artifactId>native-image-maven-plugin</artifactId>
+						<version>21.1.0</version>
+						<configuration>
+							<!-- The native image build needs to know the entry point to your 
+								application -->
+							<mainClass>com.ktully.nativeimage.springboot.restservice.RestServiceApplication</mainClass>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>native-image</goal>
+								</goals>
+								<phase>package</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<repositories>
+		<repository>
+			<id>spring-release</id>
+			<name>Spring release</name>
+			<url>https://repo.spring.io/release</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-release</id>
+			<name>Spring release</name>
+			<url>https://repo.spring.io/release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
