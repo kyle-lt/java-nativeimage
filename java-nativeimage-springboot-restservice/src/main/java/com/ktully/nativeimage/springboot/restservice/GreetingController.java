@@ -41,7 +41,7 @@ public class GreetingController {
 	 * Configuration for Context Propagation to be done via @RequestHeader
 	 * extraction
 	 */
-	TextMapGetter<Map<String, String>> getter = new TextMapGetter<Map<String, String>>() {
+	private static final TextMapGetter<Map<String, String>> getter = new TextMapGetter<Map<String, String>>() {
 		@Override
 		public String get(Map<String, String> carrier, String key) {
 			logger.debug("Key = " + key);
@@ -76,7 +76,7 @@ public class GreetingController {
 		
 		Context extractedContext = null;
 		try {
-			logger.debug("Trying to extact Context Propagation Headers from ui to item-api/distribute.");
+			logger.debug("Trying to extact Context Propagation Headers.");
 			extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
 					.extract(Context.current(), headers, getter);
 			
