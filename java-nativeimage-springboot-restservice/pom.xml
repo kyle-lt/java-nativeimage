@@ -117,12 +117,18 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 
 				<!-- This is used for the Docker Build variant -->
-				<!-- <configuration> <image> <builder>paketobuildpacks/builder:tiny</builder> 
-					<env> <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE> </env> </image> </configuration> -->
-				<!-- This is used for the Native Build variant -->
 				<configuration>
-					<classifier>exec</classifier>
+					<image>
+						<builder>paketobuildpacks/builder:tiny</builder>
+						<env>
+							<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+						</env>
+					</image>
 				</configuration>
+				<!-- This is used for the Native Build variant -->
+				<!-- <configuration>
+					<classifier>exec</classifier>
+				</configuration>-->
 			</plugin>
 		</plugins>
 	</build>

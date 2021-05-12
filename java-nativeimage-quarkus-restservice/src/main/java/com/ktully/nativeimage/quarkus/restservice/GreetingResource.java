@@ -25,38 +25,38 @@ import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 //import io.opentelemetry.context.propagation.TextMapSetter;
 
-//@ApplicationScoped
+@ApplicationScoped
 @Path("/hello")
 public class GreetingResource {
 	
 	// Logger
 	private static final Logger logger = LoggerFactory.getLogger(GreetingResource.class);
 	
-	//@Inject
 	// OTel
 	//private static final OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
 	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
 	//private static final Tracer tracer =
 	//	      openTelemetry.getTracer("com.ktully.nativeimage.springboot.restservice");
 	Tracer tracer =
-		      openTelemetry.getTracer("com.ktully.nativeimage.springboot.restservice");
+		      openTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
 	
 	/*
 	 * Configuration for Context Propagation to be done via @RequestHeader
 	 * extraction
 	 */
 	
-	private static final TextMapGetter<MultivaluedMap<String, String>> getter = new TextMapGetter<MultivaluedMap<String, String>>() {
+	TextMapGetter<MultivaluedMap<String, String>> getter = new TextMapGetter<MultivaluedMap<String, String>>() {
 		@Override
 		public String get(MultivaluedMap<String, String> carrier, String key) {
 			logger.info("Key = " + key);
-			logger.info("Key found! " + key);
+			logger.info("Key found!");
 			logger.info("Value = " + carrier.get(key));
 			if (carrier.get(key) == null) {
 				return "";
 			}
 			else {
-				return carrier.get(key).toString();
+				logger.info("Returning the context: " + carrier.get(key).get(0));
+				return carrier.get(key).get(0);
 			}
 		}
 		// 0.10.0 - didn't need this implementation for 0.8.0
@@ -84,22 +84,19 @@ public class GreetingResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello(@Context  HttpHeaders headers) {
-    	MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-        /*
-    	String str = requestHeaders.entrySet()
-                .stream()
-                .map(e -> e.getKey() + " = " + e.getValue())
-                .collect(Collectors.joining("\n"));
-    	logger.info(str);
-    	*/
+    	//MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
     	
     	io.opentelemetry.context.Context extractedContext = null;
 		try {
 			logger.info("Trying to extact Context Propagation Headers.");
-			extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-					.extract(io.opentelemetry.context.Context.current(), requestHeaders, getter);
 			
-			logger.info(extractedContext.toString());
+			extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+					.extract(io.opentelemetry.context.Context.current(), headers.getRequestHeaders(), getter);
+			
+			logger.info("extractedContext = " + extractedContext.toString());
+			if (extractedContext.equals(null)) {
+				logger.info("extractedContext is null");
+			}
 		} catch (Exception e) {
 			logger.error("Exception caught while extracting Context Propagators", e);
 		}
@@ -162,7 +159,7 @@ public class GreetingResource {
 		
 			return "Hello RESTEasy";
 		} catch (Exception e) {
-			logger.error("Exception caught attempting to create Span", e);
+			logger.info("Exception caught attempting to create Span", e);
 			return e.getMessage();
 		} finally {
 			if (serverSpan != null) {

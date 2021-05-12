@@ -28,7 +28,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider;
 // OTLP Exporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 
-//@ApplicationScoped
+@ApplicationScoped
 public class OtelTracerConfig {
 	
 	//@Produces

@@ -1,0 +1,29 @@
+version: "3.7"
+
+networks:
+  monitoring:
+    external: true
+
+services:
+
+  springboot:
+    #build: ./java-nativeimage-springboot-restservice
+    image: restservice:0.0.1-SNAPSHOT
+    container_name: springboot
+    #env_file:
+      #- otel-chain-env-vars.env
+    ports:
+      - "8081:8081"
+    networks:
+      - monitoring
+
+  quarkus:
+    build: ./java-nativeimage-quarkus-restservice
+    image: kjtully/java-nativeimage-quarkus-restservice:latest
+    container_name: quarkus
+    #env_file:
+      #- otel-chain-env-vars.env
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring    

@@ -104,16 +104,16 @@ public class GreetingController {
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders propagationHeaders = new HttpHeaders();
 
-			Span restTemplateSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT).startSpan();
+			Span restTemplateSpan = tracer.spanBuilder("HTTP GET quarkus/hello").setSpanKind(SpanKind.CLIENT).startSpan();
 			try (Scope outgoingScope = restTemplateSpan.makeCurrent()) {
 				// Add some important info to our Span
-				restTemplateSpan.addEvent("Calling httpbin.org/get via RestTemplate"); // This ends up in "logs"
+				restTemplateSpan.addEvent("Calling quarkus/hello via RestTemplate"); // This ends up in "logs"
 																							// section in
 				// Add the attributes defined in the Semantic Conventions
 				restTemplateSpan.setAttribute("http.method", "GET");
 				restTemplateSpan.setAttribute("http.scheme", "http");
-				restTemplateSpan.setAttribute("http.host", "httpbin.org");
-				restTemplateSpan.setAttribute("http.target", "/get");
+				restTemplateSpan.setAttribute("http.host", "quarkus");
+				restTemplateSpan.setAttribute("http.target", "/hello");
 
 				// 0.14.1
 				openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), propagationHeaders, httpHeadersSetter);
@@ -123,7 +123,7 @@ public class GreetingController {
 				HttpEntity<String> entity = new HttpEntity<String>("parameters", propagationHeaders);
 
 				// Make outgoing call via RestTemplate
-				ResponseEntity<String> response = restTemplate.exchange("http://httpbin.org/get",
+				ResponseEntity<String> response = restTemplate.exchange("http://host.docker.internal:8080/hello",
 						HttpMethod.GET, entity, String.class);
 
 				String responseString = response.getBody();
