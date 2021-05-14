@@ -1,7 +1,5 @@
 package com.ktully.nativeimage.quarkus.restservice;
 
-import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -10,10 +8,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jboss.logging.Logger;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
@@ -23,140 +21,140 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
-//import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 
 @ApplicationScoped
 @Path("/hello")
 public class GreetingResource {
-	
+
+	@Inject
+	RestClient client;
+
 	// Logger
-	private static final Logger logger = LoggerFactory.getLogger(GreetingResource.class);
-	
+	private static final Logger logger = Logger.getLogger(GreetingResource.class);
+
 	// OTel
-	//private static final OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	// private static final OpenTelemetry openTelemetry =
+	// OtelTracerConfig.OpenTelemetryConfig();
 	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
-	//private static final Tracer tracer =
-	//	      openTelemetry.getTracer("com.ktully.nativeimage.springboot.restservice");
-	Tracer tracer =
-		      openTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
-	
+	// private static final Tracer tracer =
+	// openTelemetry.getTracer("com.ktully.nativeimage.springboot.restservice");
+	Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
+
 	/*
 	 * Configuration for Context Propagation to be done via @RequestHeader
 	 * extraction
 	 */
-	
+
 	TextMapGetter<MultivaluedMap<String, String>> getter = new TextMapGetter<MultivaluedMap<String, String>>() {
 		@Override
 		public String get(MultivaluedMap<String, String> carrier, String key) {
-			logger.info("Key = " + key);
-			logger.info("Key found!");
-			logger.info("Value = " + carrier.get(key));
+			logger.debug("** Key Found = " + key);			
+			logger.debug("** Key Value = " + carrier.get(key));
 			if (carrier.get(key) == null) {
 				return "";
-			}
-			else {
-				logger.info("Returning the context: " + carrier.get(key).get(0));
+			} else {
+				//logger.debug("** Returning the context: " + carrier.get(key).get(0));
 				return carrier.get(key).get(0);
 			}
 		}
+
 		// 0.10.0 - didn't need this implementation for 0.8.0
 		@Override
 		public Iterable<String> keys(MultivaluedMap<String, String> carrier) {
 			return carrier.keySet();
 		}
 	};
-	
 
 	/*
 	 * Configuration for Context Propagation to be done via HttpHeaders injection
 	 */
-	/*
-	private static final TextMapSetter<HttpHeaders> httpHeadersSetter = new TextMapSetter<HttpHeaders>() {
-		@Override
-		public void set(HttpHeaders carrier, String key, String value) {
-			logger.debug("RestTemplate - Adding Header with Key = " + key);
-			logger.debug("RestTemplate - Adding Header with Value = " + value);
-			carrier.set(key, value);
-		}
-	};
-	*/
+	
+	 TextMapSetter<MultivaluedMap<String, String>> setter = new TextMapSetter<MultivaluedMap<String, String>>() {
+	 
+	 @Override 
+	 public void set(MultivaluedMap<String, String> carrier, String key, String value) {
+		 logger.debug("Adding Header with Key = " + key);
+		 logger.debug("Adding Header with Value = " + value);
+		 carrier.add(key, value);
+		 } 
+	 };
+	 
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String hello(@Context  HttpHeaders headers) {
-    	//MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
-    	
-    	io.opentelemetry.context.Context extractedContext = null;
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	public String hello(@Context HttpHeaders headers) {
+		// MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+
+		io.opentelemetry.context.Context extractedContext = null;
 		try {
-			logger.info("Trying to extact Context Propagation Headers.");
-			
+			logger.debug("Trying to extact Context Propagation Headers.");
+
 			extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
 					.extract(io.opentelemetry.context.Context.current(), headers.getRequestHeaders(), getter);
-			
-			logger.info("extractedContext = " + extractedContext.toString());
+
+			logger.debug("The extractedContext = " + extractedContext.toString());
 			if (extractedContext.equals(null)) {
 				logger.info("extractedContext is null");
 			}
 		} catch (Exception e) {
 			logger.error("Exception caught while extracting Context Propagators", e);
 		}
-		
-		Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setParent(extractedContext).setSpanKind(SpanKind.SERVER).startSpan();
+
+		Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setParent(extractedContext).setSpanKind(SpanKind.SERVER)
+				.startSpan();
 		try (Scope scope = serverSpan.makeCurrent()) {
-			logger.info("Trying to build Server Span.");
-			
+			logger.info("Building Server Span \"serverSpan\".");
+
 			// Add some "Events" (AKA logs) to the span
 			serverSpan.addEvent("This is an event with no Attributes");
 			AttributeKey<String> attrKey = AttributeKey.stringKey("attrKey");
 			Attributes spanEventAttr = Attributes.of(attrKey, "attrVal");
 			serverSpan.addEvent("This is an event with an Attributes String Array", spanEventAttr);
-			
+
 			// Add the attributes defined in the Semantic Conventions
 			serverSpan.setAttribute("http.method", "GET");
 			serverSpan.setAttribute("http.scheme", "http");
 			serverSpan.setAttribute("http.host", "java-nativeimage-quarkus-restservice");
 			serverSpan.setAttribute("http.target", "/hello");
 
-			//RestTemplate restTemplate = new RestTemplate();
-			//HttpHeaders propagationHeaders = new HttpHeaders();
+			// Here is the downstream HTTP call stuff //
+			Span httpClientSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT)
+					.startSpan();
+			try (Scope outgoingScope = httpClientSpan.makeCurrent()) {
 
-			/*
-			Span restTemplateSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT).startSpan();
-			try (Scope outgoingScope = restTemplateSpan.makeCurrent()) {
-				// Add some important info to our Span
-				restTemplateSpan.addEvent("Calling httpbin.org/get via RestTemplate"); // This ends up in "logs"
-																							// section in
+				logger.debug("Building HTTP Client Span \"httpClientSpan\".");
+				// Add Log Event to Client Span
+				httpClientSpan.addEvent("Calling httpbin.org/get via jax.ws.rs HTTP Client");
 				// Add the attributes defined in the Semantic Conventions
-				restTemplateSpan.setAttribute("http.method", "GET");
-				restTemplateSpan.setAttribute("http.scheme", "http");
-				restTemplateSpan.setAttribute("http.host", "httpbin.org");
-				restTemplateSpan.setAttribute("http.target", "/get");
+				httpClientSpan.setAttribute("http.method", "GET");
+				httpClientSpan.setAttribute("http.scheme", "http");
+				httpClientSpan.setAttribute("http.host", "httpbin.org");
+				httpClientSpan.setAttribute("http.target", "/get");
 
-				// 0.14.1
-				openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), propagationHeaders, httpHeadersSetter);
+				// Inject W3C Context Propagation Headers
+				logger.debug("Trying to inject Context Propagation Headers.");
+				MultivaluedMap<String, String> outboundHeaders = new MultivaluedHashMap<>();
+				openTelemetry.getPropagators().getTextMapPropagator().inject(io.opentelemetry.context.Context.current(), outboundHeaders, setter);
 				
-				logger.debug("Injecting headers for call from java-chain to downstream API.");
-				logger.debug("**** Here are the headers: " + headers.toString());
-				HttpEntity<String> entity = new HttpEntity<String>("parameters", propagationHeaders);
+				logger.debug("Here are the headers on the HTTP Request:");
+				for (String str : outboundHeaders.keySet()) {
+					logger.debug("** Added Header Key = " + str);
+					logger.debug("** Added Header Value = " + outboundHeaders.getFirst(str));
+				}
 
-				// Make outgoing call via RestTemplate
-				ResponseEntity<String> response = restTemplate.exchange("http://httpbin.org/get",
-						HttpMethod.GET, entity, String.class);
-
-				String responseString = response.getBody();
-				logger.debug("Response from downstream: ");
-				logger.debug(responseString);
+				String response = client.get().toCompletableFuture().join();
+				logger.debug("HTTP Client Call Response = " + response);
 			} catch (Exception e) {
-				restTemplateSpan.addEvent("error");
-				restTemplateSpan.addEvent(e.toString());
-				restTemplateSpan.setAttribute("error", true);
+				httpClientSpan.addEvent("error");
+				httpClientSpan.addEvent(e.toString());
+				httpClientSpan.setAttribute("error", true);
 				logger.error("Error during OT section, here it is!", e);
-				return new Greeting(counter.incrementAndGet(), e.getMessage());
+				// return new Greeting(counter.incrementAndGet(), e.getMessage());
 			} finally {
-				restTemplateSpan.end();
+				httpClientSpan.end();
 			}
-			*/
-		
+
 			return "Hello RESTEasy";
 		} catch (Exception e) {
 			logger.info("Exception caught attempting to create Span", e);
@@ -166,5 +164,5 @@ public class GreetingResource {
 				serverSpan.end();
 			}
 		}
-    }
+	}
 }
