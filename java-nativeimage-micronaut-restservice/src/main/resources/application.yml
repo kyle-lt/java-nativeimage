@@ -1,3 +1,9 @@
 micronaut:
   application:
     name: restservice
+  server:
+    port: 8082
+
+logger:
+  levels:
+    com.ktully.nativeimage.micronaut.GreetingMicronautController: DEBUG

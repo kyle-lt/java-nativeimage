@@ -26,4 +26,15 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - monitoring    
+      - monitoring
+
+  micronaut:
+    #build: ./java-nativeimage-quarkus-restservice
+    image: kjtully/java-nativeimage-micronaut-restservice:latest
+    container_name: micronaut
+    #env_file:
+      #- otel-chain-env-vars.env
+    ports:
+      - "8082:8080"
+    networks:
+      - monitoring 
