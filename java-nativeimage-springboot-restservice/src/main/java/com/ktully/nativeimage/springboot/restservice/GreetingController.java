@@ -35,7 +35,7 @@ public class GreetingController {
 	// OTel
 	private static final OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
 	private static final Tracer tracer =
-		      openTelemetry.getTracer("com.ktully.nativeimage.springboot.restservice");
+		      openTelemetry.getTracer("com.ktully.nativeimage.micronaut.restservice");
 	
 	/*
 	 * Configuration for Context Propagation to be done via @RequestHeader
