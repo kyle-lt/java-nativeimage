@@ -4,6 +4,8 @@ import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,9 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.propagation.TextMapGetter;
 
 @Controller("/hello")
 public class GreetingMicronautController {
@@ -23,8 +27,31 @@ public class GreetingMicronautController {
 	private final GreetingMicronautService greetingMicronautservice;
 	
 	// OTel
-	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
-	Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.micronaut.restservice");
+	private static final OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	private static final Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.micronaut.restservice");
+	
+	/*
+	 * Configuration for Context Propagation to be done via @RequestHeader
+	 * extraction
+	 */
+	private static final TextMapGetter<HttpHeaders> getter = new TextMapGetter<HttpHeaders>() {
+		@Override
+		public String get(HttpHeaders carrier, String key) {
+			logger.debug("Key found = " + key);
+			logger.debug("Value = " + carrier.get(key));
+			if (carrier.get(key) == null) {
+				return "";
+			} else {
+				logger.debug("** Returning the context: " + carrier.get(key));
+				return carrier.get(key);
+			}
+		}
+		// 0.10.0 - didn't need this implementation for 0.8.0
+		@Override
+		public Iterable<String> keys(HttpHeaders carrier) {
+			return carrier.names();
+		}
+	};
 	
     public GreetingMicronautController(GreetingMicronautService greetingMicronautservice) { 
         this.greetingMicronautservice = greetingMicronautservice;
@@ -39,9 +66,23 @@ public class GreetingMicronautController {
     		logger.debug("Header Value = " + headers.get(headerName));
     	}
     	
+		Context extractedContext = null;
+		try {
+			logger.debug("Trying to extact Context Propagation Headers.");
+			extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+					.extract(Context.current(), headers, getter);
+			
+			logger.debug(extractedContext.toString());
+			if (extractedContext.equals(null)) {
+				logger.info("extractedContext is null");
+			}
+		} catch (Exception e) {
+			logger.error("Exception caught while extracting Context Propagators", e);
+		}
+    	
     	// ****** OpenTelemetry ******
-    	Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setSpanKind(SpanKind.SERVER).startSpan();
-    	//Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setParent(extractedContext).setSpanKind(SpanKind.SERVER).startSpan();
+    	//Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setSpanKind(SpanKind.SERVER).startSpan();
+    	Span serverSpan = tracer.spanBuilder("HTTP GET /hello").setParent(extractedContext).setSpanKind(SpanKind.SERVER).startSpan();
 		try (Scope scope = serverSpan.makeCurrent()) {
 			logger.debug("Trying to build Span and then make RestTemplate call downstream");
 			
