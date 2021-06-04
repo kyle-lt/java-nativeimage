@@ -120,6 +120,7 @@
 				<configuration>
 					<image>
 						<builder>paketobuildpacks/builder:tiny</builder>
+						<name>kjtully/java-nativeimage-springboot-restservice:latest</name>
 						<env>
 							<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
 						</env>

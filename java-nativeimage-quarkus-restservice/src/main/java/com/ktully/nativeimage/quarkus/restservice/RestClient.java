@@ -14,18 +14,18 @@ public class RestClient {
 	
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 	private Client client;
-	private String baseUrl;// = "http://localhost:8080";
+	private String baseUrl;
 
 	@Inject
     public RestClient() {
-        baseUrl = "http://httpbin.org";
+        baseUrl = "http://host.docker.internal:8082";
         client = ClientBuilder.newBuilder()
                 .executorService(executorService)
                 .build();
     }
 
 	CompletionStage<String> get() {
-		return client.target(baseUrl + "/get").request().rx().get(String.class);
+		return client.target(baseUrl + "/hello").request().rx().get(String.class);
 	}
 
 }

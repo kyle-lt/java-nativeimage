@@ -112,20 +112,21 @@
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-protobuf</artifactId>
-			<!-- <version>1.30.0</version>-->
 		</dependency>
+		<!-- <dependency> <groupId>io.grpc</groupId> <artifactId>grpc-netty-shaded</artifactId> 
+			</dependency> -->
+		<!-- <dependency> <groupId>io.grpc</groupId> <artifactId>grpc-okhttp</artifactId> 
+			</dependency> -->
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-netty-shaded</artifactId>
-			<!--<version>1.30.0</version>-->
+			<version>1.33.1</version>
 		</dependency>
-		<!--
 		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-okhttp</artifactId>
-			<version>1.37.0</version>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-graalvm-support</artifactId>
+			<version>0.4.0</version>
 		</dependency>
-		-->
 	</dependencies>
 
 	<build>
@@ -133,6 +134,22 @@
 			<plugin>
 				<groupId>io.micronaut.build</groupId>
 				<artifactId>micronaut-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Image Name doesn't work this way -->
+			<!-- <plugin> <groupId>org.graalvm.nativeimage</groupId> <artifactId>native-image-maven-plugin</artifactId> 
+				<configuration> <imageName>kjtully/java-nativeimage-micronaut-restservice:latest</imageName> 
+				</configuration> </plugin> -->
+
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<configuration>
+					<to>
+						<image>kjtully/java-nativeimage-micronaut-restservice</image>
+						<tags>latest</tags>
+					</to>
+				</configuration>
 			</plugin>
 
 			<plugin>

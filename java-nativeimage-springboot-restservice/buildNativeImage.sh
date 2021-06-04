@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#echo "Ensuring that we are using the GraalVM with Native Image support."
-#sdk use java 21.0.0.2.r8-grl
-#echo "Done!"
+echo "Ensuring that we are using the GraalVM with Native Image support."
+sdk use java 21.1.0.r16-grl
+echo "Done!"
 
 echo "Building executable jar."
 mvn package

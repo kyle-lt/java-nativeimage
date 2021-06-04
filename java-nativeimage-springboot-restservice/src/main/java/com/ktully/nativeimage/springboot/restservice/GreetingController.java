@@ -149,6 +149,11 @@ public class GreetingController {
 			}
 		}
 	}
+	
+	@GetMapping("/test")
+	public String test() {
+		return "test";
+	}
 }
 
 

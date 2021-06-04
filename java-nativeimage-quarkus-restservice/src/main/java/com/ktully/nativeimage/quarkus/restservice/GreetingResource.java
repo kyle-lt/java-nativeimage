@@ -119,18 +119,18 @@ public class GreetingResource {
 			serverSpan.setAttribute("http.target", "/hello");
 
 			// Here is the downstream HTTP call stuff //
-			Span httpClientSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT)
+			Span httpClientSpan = tracer.spanBuilder("HTTP GET host.docker.internal:8082/hello").setSpanKind(SpanKind.CLIENT)
 					.startSpan();
 			try (Scope outgoingScope = httpClientSpan.makeCurrent()) {
 
 				logger.debug("Building HTTP Client Span \"httpClientSpan\".");
 				// Add Log Event to Client Span
-				httpClientSpan.addEvent("Calling httpbin.org/get via jax.ws.rs HTTP Client");
+				httpClientSpan.addEvent("Calling host.docker.internal:8082/hello via jax.ws.rs HTTP Client");
 				// Add the attributes defined in the Semantic Conventions
 				httpClientSpan.setAttribute("http.method", "GET");
 				httpClientSpan.setAttribute("http.scheme", "http");
-				httpClientSpan.setAttribute("http.host", "httpbin.org");
-				httpClientSpan.setAttribute("http.target", "/get");
+				httpClientSpan.setAttribute("http.host", "host.docker.internal:8082");
+				httpClientSpan.setAttribute("http.target", "/hello");
 
 				// Inject W3C Context Propagation Headers
 				logger.debug("Trying to inject Context Propagation Headers.");
@@ -143,6 +143,7 @@ public class GreetingResource {
 					logger.debug("** Added Header Value = " + outboundHeaders.getFirst(str));
 				}
 
+				logger.debug("Sending downstream call to Micronaut");
 				String response = client.get().toCompletableFuture().join();
 				logger.debug("HTTP Client Call Response = " + response);
 			} catch (Exception e) {

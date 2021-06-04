@@ -1,10 +1,14 @@
 package com.ktully.nativeimage.micronaut;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.http.HttpHeaders;
+import io.micronaut.http.MutableHttpHeaders;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.http.client.annotation.Client;
 
-import java.util.Map;
+import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +22,10 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapSetter;
+import io.reactivex.Maybe;
 
+@Introspected
 @Controller("/hello")
 public class GreetingMicronautController {
 	
@@ -26,9 +33,12 @@ public class GreetingMicronautController {
 	
 	private final GreetingMicronautService greetingMicronautservice;
 	
+	// Inject HTTP Client for downstream call
+	@Client("http://httpbin.org") @Inject RxHttpClient httpClient;
+	
 	// OTel
-	private static final OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
-	private static final Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.micronaut.restservice");
+	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.micronaut.restservice");
 	
 	/*
 	 * Configuration for Context Propagation to be done via @RequestHeader
@@ -53,6 +63,19 @@ public class GreetingMicronautController {
 		}
 	};
 	
+	/*
+	 * Configuration for Context Propagation to be done via HttpHeaders injection
+	 */
+	
+	 TextMapSetter<MutableHttpHeaders> setter = new TextMapSetter<MutableHttpHeaders>() {
+		 @Override 
+		 public void set(MutableHttpHeaders carrier, String key, String value) {
+			 logger.debug("Adding Header with Key = " + key);
+			 logger.debug("Adding Header with Value = " + value);
+			 carrier.add(key, value);
+			 } 
+		 };
+	
     public GreetingMicronautController(GreetingMicronautService greetingMicronautservice) { 
         this.greetingMicronautservice = greetingMicronautservice;
     }
@@ -65,6 +88,8 @@ public class GreetingMicronautController {
     		logger.debug("Header Name  = " + headerName);
     		logger.debug("Header Value = " + headers.get(headerName));
     	}
+    	
+    	MutableHttpHeaders mutableHttpHeaders = (MutableHttpHeaders) headers;
     	
 		Context extractedContext = null;
 		try {
@@ -98,46 +123,48 @@ public class GreetingMicronautController {
 			serverSpan.setAttribute("http.host", "java-nativeimage-springboot-restservice");
 			serverSpan.setAttribute("http.target", "/hello");
 
-			/*
-			RestTemplate restTemplate = new RestTemplate();
-			HttpHeaders propagationHeaders = new HttpHeaders();
-
-			Span restTemplateSpan = tracer.spanBuilder("HTTP GET quarkus/hello").setSpanKind(SpanKind.CLIENT).startSpan();
-			try (Scope outgoingScope = restTemplateSpan.makeCurrent()) {
+			
+			// Here is the downstream HTTP call stuff
+			Span httpClientSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT)
+					.startSpan();
+			try (Scope outgoingScope = httpClientSpan.makeCurrent()) {
 				// Add some important info to our Span
-				restTemplateSpan.addEvent("Calling quarkus/hello via RestTemplate"); // This ends up in "logs"
+				httpClientSpan.addEvent("Calling quarkus/hello via RestTemplate"); // This ends up in "logs"
 																							// section in
 				// Add the attributes defined in the Semantic Conventions
-				restTemplateSpan.setAttribute("http.method", "GET");
-				restTemplateSpan.setAttribute("http.scheme", "http");
-				restTemplateSpan.setAttribute("http.host", "quarkus");
-				restTemplateSpan.setAttribute("http.target", "/hello");
+				httpClientSpan.setAttribute("http.method", "GET");
+				httpClientSpan.setAttribute("http.scheme", "http");
+				httpClientSpan.setAttribute("http.host", "quarkus");
+				httpClientSpan.setAttribute("http.target", "/hello");
 
 				// 0.14.1
-				openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), propagationHeaders, httpHeadersSetter);
+				openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), mutableHttpHeaders, setter);
 				
-				logger.debug("Injecting headers for call from java-chain to downstream API.");
-				logger.debug("**** Here are the headers: " + headers.toString());
-				HttpEntity<String> entity = new HttpEntity<String>("parameters", propagationHeaders);
+				Maybe<String> responseMaybe = httpClient.retrieve("/get").firstElement();
+				
+				// Change to unblocking laterz...
+				String response = responseMaybe.blockingGet();
+				
+				//logger.debug("Injecting headers for call from java-chain to downstream API.");
+				//logger.debug("**** Here are the headers: " + headers.toString());
+				//HttpEntity<String> entity = new HttpEntity<String>("parameters", propagationHeaders);
 
 				// Make outgoing call via RestTemplate
-				ResponseEntity<String> response = restTemplate.exchange("http://host.docker.internal:8080/hello",
-						HttpMethod.GET, entity, String.class);
+				//ResponseEntity<String> response = restTemplate.exchange("http://host.docker.internal:8080/hello",
+				//		HttpMethod.GET, entity, String.class);
 
-				String responseString = response.getBody();
-				logger.debug("Response from downstream: ");
-				logger.debug(responseString);
+				//String responseString = response.getBody();
+				//logger.debug("Response from downstream: ");
+				//logger.debug(responseString);
 			} catch (Exception e) {
-				restTemplateSpan.addEvent("error");
-				restTemplateSpan.addEvent(e.toString());
-				restTemplateSpan.setAttribute("error", true);
+				httpClientSpan.addEvent("error");
+				httpClientSpan.addEvent(e.toString());
+				httpClientSpan.setAttribute("error", true);
 				logger.error("Error during OT section, here it is!", e);
-				return new Greeting(counter.incrementAndGet(), e.getMessage());
+				return greetingMicronautservice.greeting();
 			} finally {
-				restTemplateSpan.end();
+				httpClientSpan.end();
 			}
-			*/
-		
 			return greetingMicronautservice.greeting();
 		} catch (Exception e) {
 			logger.error("Exception caught attempting to create Span", e);
