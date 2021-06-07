@@ -2,7 +2,7 @@ package com.ktully.nativeimage.micronaut;
 
 import javax.inject.Singleton;
 
-@Singleton 
+@Singleton
 public class GreetingMicronautService {
 
     public String greeting() { 

@@ -5,10 +5,10 @@ import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.MutableHttpHeaders;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import io.micronaut.http.client.RxHttpClient;
-import io.micronaut.http.client.annotation.Client;
+//import io.micronaut.http.client.RxHttpClient;
+//import io.micronaut.http.client.annotation.Client;
 
-import javax.inject.Inject;
+//import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,8 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import io.reactivex.Maybe;
+
+//import io.reactivex.Maybe;
 
 @Introspected
 @Controller("/hello")
@@ -34,7 +35,7 @@ public class GreetingMicronautController {
 	private final GreetingMicronautService greetingMicronautservice;
 	
 	// Inject HTTP Client for downstream call
-	@Client("http://httpbin.org") @Inject RxHttpClient httpClient;
+	//@Client("http://httpbin.org") @Inject RxHttpClient httpClient;
 	
 	// OTel
 	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
@@ -140,10 +141,10 @@ public class GreetingMicronautController {
 				// 0.14.1
 				openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), mutableHttpHeaders, setter);
 				
-				Maybe<String> responseMaybe = httpClient.retrieve("/get").firstElement();
+				//Maybe<String> responseMaybe = httpClient.retrieve("/get").firstElement();
 				
 				// Change to unblocking laterz...
-				String response = responseMaybe.blockingGet();
+				//String response = responseMaybe.blockingGet();
 				
 				//logger.debug("Injecting headers for call from java-chain to downstream API.");
 				//logger.debug("**** Here are the headers: " + headers.toString());
