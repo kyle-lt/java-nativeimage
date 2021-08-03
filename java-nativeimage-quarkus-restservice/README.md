@@ -80,6 +80,9 @@ If you've gotten this far, you probably already know how to do this! But, here i
 > __NOTE:__  This set of services uses a docker network named `monitor`, so create it first!
 
 ```bash
+# Create network named monitor
+docker network create monitor
+# Create and start quarkus service
 docker-compose create quarkus
 docker-compose start quarkus
 ```
