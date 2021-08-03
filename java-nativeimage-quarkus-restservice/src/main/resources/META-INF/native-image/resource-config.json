@@ -1,13 +1,22 @@
 {
   "resources":{
   "includes":[
+    {"pattern":"\\QMETA-INF/services/io.grpc.LoadBalancerProvider\\E"}, 
+    {"pattern":"\\QMETA-INF/services/io.grpc.ManagedChannelProvider\\E"}, 
+    {"pattern":"\\QMETA-INF/services/io.grpc.NameResolverProvider\\E"}, 
     {"pattern":"\\QMETA-INF/services/io.smallrye.config.ConfigSourceFactory\\E"}, 
     {"pattern":"\\QMETA-INF/services/io.smallrye.config.SmallRyeConfigFactory\\E"}, 
+    {"pattern":"\\QMETA-INF/services/io.vertx.core.spi.BufferFactory\\E"}, 
     {"pattern":"\\QMETA-INF/services/io.vertx.core.spi.FutureFactory\\E"}, 
+    {"pattern":"\\QMETA-INF/services/javax.ws.rs.client.ClientBuilder\\E"}, 
     {"pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.ConfigSource\\E"}, 
     {"pattern":"\\QMETA-INF/services/org.eclipse.microprofile.config.spi.Converter\\E"}, 
     {"pattern":"\\Qapplication.properties\\E"}, 
-    {"pattern":"\\Qorg/jboss/threads/Version.properties\\E"}
+    {"pattern":"\\Qio/opentelemetry/sdk/version.properties\\E"}, 
+    {"pattern":"\\Qmozilla/public-suffix-list.txt\\E"}, 
+    {"pattern":"\\Qorg/apache/http/client/version.properties\\E"}, 
+    {"pattern":"\\Qorg/jboss/threads/Version.properties\\E"}, 
+    {"pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"}
   ]},
   "bundles":[]
 }
