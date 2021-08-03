@@ -1,11 +1,28 @@
+
+# -*-*-*- READ FIRST: NOT WORKING AS EXPECTED -*-*-*-
+
+__Oddly, the exporter env vars are working as expected, but the resource env vars are not working__
+
+Working
+
+```bash
+OTEL_TRACES_EXPORTER=otlp
+OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317
+```
+Not Working
+
+```bash
+OTEL_SERVICE_NAME=justTryingThisRealQuick
+OTEL_RESOURCE_ATTRIBUTES=service.name=java-nativeimage-quarkus-restservice,service.namespace=kjt-java-nativeimage
+```
+
+> More specifically, all of them work fine when run in GraalVM as a JAR, but don't work as a native image
+
 # java-nativeimage-quarkus-restservice project
 
 This project makes use of the [OTel SDK Extension AutoConfigure](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) module/package.  
 
 The reason for using the AutoConfigure package is to take advantage of the convenient ability to completely configure the OTel SDK via environment variables.
-
-__Ok, the crazy part, the exporter env vars are working as expected, but the resource env vars are not working__
-> More specifically, all of them work fine when run in GraalVM as a JAR, but don't work as a native image
 
 In order to do so, it also uses a "custom" `Main` method (as outlined [here](https://quarkus.io/guides/lifecycle)) to bootstrap the GlobalOpenTelemetry SDK.
 
