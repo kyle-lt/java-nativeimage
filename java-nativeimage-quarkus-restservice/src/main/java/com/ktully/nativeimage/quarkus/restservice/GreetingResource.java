@@ -23,7 +23,6 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapSetter;
-//import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 
 @ApplicationScoped
 @Path("/hello")
@@ -41,14 +40,11 @@ public class GreetingResource {
 	 * Config options are [here](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure)
 	 * So, this service will be 100% configured via environment variables
 	 */
-	
-	//OpenTelemetry openTelemetry = OpenTelemetrySdkAutoConfiguration.initialize();
-	//Tracer tracer = autoOpenTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
-	
-	OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
-	
-	// OTel
 	//OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	
+	// GlobalOpenTelemetry initialized in Main method, so grabbing it for use here
+	OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+	// Instantiate Tracer for this Controller
 	Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
 
 	/*
@@ -89,7 +85,6 @@ public class GreetingResource {
 		 carrier.add(key, value);
 		 } 
 	 };
-	 
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
