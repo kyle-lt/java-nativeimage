@@ -11,7 +11,7 @@ It does  __not__  use the built-in quarkus OTel support (as in this [example](ht
 
 ## Run Code in JVM, Dev Mode
 
-From the base directory, run the following command:
+From the `$PROJECT_HOME/java-nativeimage-quarkus-restservice` directory, run the following command:
 
 ```bash
 mvn quarkus:dev
@@ -74,5 +74,15 @@ quarkus.container-image.builder=docker
 ```
 
 ## Run the Docker Image with Docker-Compose
+
+If you've gotten this far, you probably already know how to do this! But, here is something I'll often do from the `$PROJECT_HOME` directory:
+
+> __NOTE:__  This set of services uses a docker network named `monitor`, so create it first!
+
+```bash
+docker-compose create quarkus
+docker-compose start quarkus
+```
+
 
 
