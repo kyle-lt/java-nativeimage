@@ -4,6 +4,9 @@ This project makes use of the [OTel SDK Extension AutoConfigure](https://github.
 
 The reason for using the AutoConfigure package is to take advantage of the convenient ability to completely configure the OTel SDK via environment variables.
 
+__Ok, the crazy part, the exporter env vars are working as expected, but the resource env vars are not working__
+> More specifically, all of them work fine when run in GraalVM as a JAR, but don't work as a native image
+
 In order to do so, it also uses a "custom" `Main` method (as outlined [here](https://quarkus.io/guides/lifecycle)) to bootstrap the GlobalOpenTelemetry SDK.
 
 It does  __not__  use the built-in quarkus OTel support (as in this [example](https://quarkus.io/guides/opentelemetry)).
