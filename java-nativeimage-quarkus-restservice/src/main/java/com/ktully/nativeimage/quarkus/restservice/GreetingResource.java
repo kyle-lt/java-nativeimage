@@ -153,7 +153,7 @@ public class GreetingResource {
 					logger.debug("** Added Header Value = " + outboundHeaders.getFirst(str));
 				}
 
-				logger.debug("Sending downstream call to Micronaut");
+				logger.debug("Sending downstream call.");
 				String response = client.get().toCompletableFuture().join();
 				logger.debug("HTTP Client Call Response = " + response);
 			} catch (Exception e) {
