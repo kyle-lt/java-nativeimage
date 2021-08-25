@@ -19,7 +19,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 
-import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 // OTLP Exporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
@@ -31,16 +31,19 @@ public class OtelTracerConfig {
 	private static final Logger logger = Logger.getLogger(OtelTracerConfig.class);
 
 	// Using service resource attributes provided by environment variables
-	private static String otelServiceName;
-	private static String otelServiceNamespace;
-	
+	//private static String otelServiceName;
+	//private static String otelServiceNamespace;
+	/*
 	static {
-		otelServiceName = ConfigProvider.getConfig().getValue("otel.service.name", String.class);
-		otelServiceNamespace = ConfigProvider.getConfig().getValue("otel.service.namespace", String.class);
+		//otelServiceName = ConfigProvider.getConfig().getValue("otel.service.name", String.class);
+		otelServiceName = System.getenv("OTEL_SERVICE_NAME");
+		//otelServiceNamespace = ConfigProvider.getConfig().getValue("otel.service.namespace", String.class);
+		otelServiceNamespace = System.getenv("OTEL_SERVICE_NAMESPACE");
 	}
-
+	*/
+	
 	// public Tracer OtelTracer() throws Exception {
-	public static OpenTelemetry OpenTelemetryConfig() {
+	public static OpenTelemetry OpenTelemetryConfig(String otelServiceName, String otelServiceNamespace) {
 
 		// ** Create OTLP gRPC Span Exporter & BatchSpanProcessor **
 		OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
@@ -79,6 +82,12 @@ public class OtelTracerConfig {
 
 		return openTelemetrySdk;
 
+	}
+	
+	public static void retrieveResourceAttrs(@ConfigProperty(name = "OTEL_SERVICE_NAME") String otelServiceName,
+			@ConfigProperty(name = "OTEL_SERVICE_NAMESPACE") String otelServiceNamespace) {
+		
+		
 	}
 
 }
