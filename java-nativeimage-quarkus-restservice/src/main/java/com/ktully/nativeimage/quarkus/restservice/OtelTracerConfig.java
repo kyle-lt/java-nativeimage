@@ -19,7 +19,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 // OTLP Exporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
@@ -27,17 +27,17 @@ import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 @ApplicationScoped
 public class OtelTracerConfig {
 
-	// @Produces
-	// OpenTelemetrySdk openTelemetrySdk;
-
 	// Logger
 	private static final Logger logger = Logger.getLogger(OtelTracerConfig.class);
 
 	// Using service resource attributes provided by environment variables
-	@ConfigProperty(name = "otel.service.name")
 	private static String otelServiceName;
-	@ConfigProperty(name = "otel.service.namespace")
 	private static String otelServiceNamespace;
+	
+	static {
+		otelServiceName = ConfigProvider.getConfig().getValue("otel.service.name", String.class);
+		otelServiceNamespace = ConfigProvider.getConfig().getValue("otel.service.namespace", String.class);
+	}
 
 	// public Tracer OtelTracer() throws Exception {
 	public static OpenTelemetry OpenTelemetryConfig() {
@@ -50,24 +50,13 @@ public class OtelTracerConfig {
 
 		/*
 		 * Attempting to try OTEL_RESOURCE_ATTRIBUTES again, let's see what happens (see
-		 * below in SdkTracerProvider instantiation)
 		 */
 		AttributeKey<String> myServiceName = AttributeKey.stringKey("service.name");
 		AttributeKey<String> myServiceNamespace = AttributeKey.stringKey("service.namespace");
+		logger.debug("otelServiceName = " + otelServiceName);
+		logger.debug("otelServiceNamespace = " + otelServiceNamespace);
 		Resource serviceNameResource = Resource
 				.create(Attributes.of(myServiceName, otelServiceName, myServiceNamespace, otelServiceNamespace));
-
-		// Let's log the OTEL_RESOURCE_ATTRIBUTES env var value, if found
-		logger.info("#### Logging Env Var OTEL_RESOURCE_ATTRIBUTES, if present ####");
-		System.getenv().forEach((k, v) -> {
-			if (k.toString().equalsIgnoreCase("OTEL_RESOURCE_ATTRIBUTES")) {
-				logger.info(k + ":" + v);
-			}
-		});
-
-		// Let's log the Resource Attribute otel.resource.attributes
-		logger.info("#### Logging System Property otel.resource.attributes, if present ####");
-		logger.info("otel.resource.attributes:" + System.getProperty("otel.resource.attributes", "DOES_NOT_EXIST"));
 
 		// ** Create OpenTelemetry SdkTracerProvider
 		// Use OTLP & Logging Exporters

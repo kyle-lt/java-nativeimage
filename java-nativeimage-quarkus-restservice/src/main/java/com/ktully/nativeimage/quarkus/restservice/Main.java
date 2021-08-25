@@ -34,6 +34,7 @@ public class Main {
 			/*
 			 * DEBUGGING - Sanity check that environment configs are present
 			 */
+			/*
 			System.out.println("Checking for OTel Configs...");
 			System.out.println("#### Logging Env Var OTEL_SERVICE_NAME, OTEL_RESOURCE_ATTRIBUTES, if present ####");
 			System.getenv().forEach((k, v) -> {
@@ -50,7 +51,8 @@ public class Main {
 			System.out.println("#### Logging System Property otel.resource.attributes, if present ####");
 			System.out.println(
 					"otel.resource.attributes:" + System.getProperty("otel.resource.attributes", "DOES_NOT_EXIST"));
-
+			*/
+			
 			// Initialize OTel via environment-based configs (or defaults)
 			// Disabled for now since Autoconfigure SDK Extension not working as expected
 			//System.out.println("Initializing OpenTelemetry");
