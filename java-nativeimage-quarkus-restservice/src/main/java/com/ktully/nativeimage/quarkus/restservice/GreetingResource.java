@@ -14,7 +14,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.jboss.logging.Logger;
 
 import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -35,15 +34,14 @@ public class GreetingResource {
 	private static final Logger logger = Logger.getLogger(GreetingResource.class);
 
 	/*
-	 * Playing around with the AutoConfiguration SDK Extension!
-	 * Commenting out the below instantiation that uses the OtelTracerConfig SDK config
-	 * Config options are [here](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure)
-	 * So, this service will be 100% configured via environment variables
+	 * The below OpenTelemetry SDK is built with the {@link OtelTracerConfig#OpenTelemetryConfig() OtelTracerConfig} config.
 	 */
-	//OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
 	
 	// GlobalOpenTelemetry initialized in Main method, so grabbing it for use here
-	OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+	// Disabling this approach for the reasons stated in the {@link Main.MyApp#run() Main run} method.
+	//OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+	
 	// Instantiate Tracer for this Controller
 	Tracer tracer = openTelemetry.getTracer("com.ktully.nativeimage.quarkus.restservice");
 
