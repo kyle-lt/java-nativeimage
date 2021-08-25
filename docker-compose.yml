@@ -22,10 +22,11 @@ services:
     image: kjtully/java-nativeimage-quarkus-restservice:latest
     container_name: quarkus
     environment:
-      - OTEL_SERVICE_NAME=justTryingThisRealQuick
-      - OTEL_RESOURCE_ATTRIBUTES=service.name=java-nativeimage-quarkus-restservice,service.namespace=kjt-java-nativeimage
-      - OTEL_TRACES_EXPORTER=otlp
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317
+      - OTEL_SERVICE_NAME=java-nativeimage-quarkus-restservice
+      - OTEL_SERVICE_NAMESPACE=kjt-java-nativeimage
+      #- OTEL_RESOURCE_ATTRIBUTES=service.name=java-nativeimage-quarkus-restservice,service.namespace=kjt-java-nativeimage
+      #- OTEL_TRACES_EXPORTER=otlp
+      #- OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4317
     #env_file:
       #- otel-chain-env-vars.env
     ports:
