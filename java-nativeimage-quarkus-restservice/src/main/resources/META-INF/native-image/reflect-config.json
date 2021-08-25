@@ -285,12 +285,6 @@
   "fields":[{"name":"producerLimit", "allowUnsafeAccess":true}]
 },
 {
-  "name":"io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter"
-},
-{
-  "name":"io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter"
-},
-{
   "name":"io.quarkus.runner.ApplicationImpl",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
