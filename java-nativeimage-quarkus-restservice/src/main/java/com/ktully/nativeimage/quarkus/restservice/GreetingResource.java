@@ -29,14 +29,19 @@ public class GreetingResource {
 
 	@Inject
 	RestClient client;
-
+	
+	// Grab the Resource Attribute values from environment variables
+	String otelServiceName = System.getenv("OTEL_SERVICE_NAME");
+	String otelServiceNamespace = System.getenv("OTEL_SERVICE_NAMESPACE");
+	
 	// Logger
 	private static final Logger logger = Logger.getLogger(GreetingResource.class);
 
 	/*
 	 * The below OpenTelemetry SDK is built with the {@link OtelTracerConfig#OpenTelemetryConfig() OtelTracerConfig} config.
+	 * The Resource Attributes for service.name and service.namespace are being provided via environment variables
 	 */
-	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig();
+	OpenTelemetry openTelemetry = OtelTracerConfig.OpenTelemetryConfig(otelServiceName, otelServiceNamespace);
 	
 	// GlobalOpenTelemetry initialized in Main method, so grabbing it for use here
 	// Disabling this approach for the reasons stated in the {@link Main.MyApp#run() Main run} method.
@@ -122,18 +127,18 @@ public class GreetingResource {
 			serverSpan.setAttribute("http.target", "/hello");
 
 			// Here is the downstream HTTP call stuff //
-			Span httpClientSpan = tracer.spanBuilder("HTTP GET host.docker.internal:8082/hello").setSpanKind(SpanKind.CLIENT)
+			Span httpClientSpan = tracer.spanBuilder("HTTP GET httpbin.org/get").setSpanKind(SpanKind.CLIENT)
 					.startSpan();
 			try (Scope outgoingScope = httpClientSpan.makeCurrent()) {
 
 				logger.debug("Building HTTP Client Span \"httpClientSpan\".");
 				// Add Log Event to Client Span
-				httpClientSpan.addEvent("Calling host.docker.internal:8082/hello via jax.ws.rs HTTP Client");
+				httpClientSpan.addEvent("Calling httpbin.org/get via jax.ws.rs HTTP Client");
 				// Add the attributes defined in the Semantic Conventions
 				httpClientSpan.setAttribute("http.method", "GET");
 				httpClientSpan.setAttribute("http.scheme", "http");
-				httpClientSpan.setAttribute("http.host", "host.docker.internal:8082");
-				httpClientSpan.setAttribute("http.target", "/hello");
+				httpClientSpan.setAttribute("http.host", "httpbin.org");
+				httpClientSpan.setAttribute("http.target", "/get");
 
 				// Inject W3C Context Propagation Headers
 				logger.debug("Trying to inject Context Propagation Headers.");
