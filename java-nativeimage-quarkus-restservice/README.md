@@ -1,6 +1,8 @@
 
 # -*-*-*- READ FIRST: NOT WORKING AS EXPECTED -*-*-*-
 
+Part of this project attempted to use the Autoconfigure SDK Extension, but...
+
 __Oddly, the exporter env vars are working as expected, but the resource env vars are not working__
 
 Working
@@ -17,6 +19,10 @@ OTEL_RESOURCE_ATTRIBUTES=service.name=java-nativeimage-quarkus-restservice,servi
 ```
 
 > More specifically, all of them work fine when run in GraalVM as a JAR, but don't work as a native image
+
+So, instead, I opted to map some application.properties to env vars, and then manually create Service Resource Attributes.
+
+Then, I merge them when I bootstrap the OpenTelemetry SDK and things seem to work ok.
 
 # java-nativeimage-quarkus-restservice project
 
